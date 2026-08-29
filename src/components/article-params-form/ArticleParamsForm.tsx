@@ -31,67 +31,71 @@ export const ArticleParamsForm = ({
 	onApply,
 	onReset,
 }: ArticleParamsFormProps) => {
-	// Состояние формы
+	// Состояние формы (черновик)
 	const [formSettings, setFormSettings] =
 		useState<ArticleStateType>(appliedSettings);
-	// Открыт/закрыт сайдбар
+	// Состояние открытия/закрытия сайдбара
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 	const sidebarRef = useRef<HTMLDivElement>(null);
+	const arrowButtonRef = useRef<HTMLDivElement>(null);
 
-	// Добавляем/удаляем слушатели только при открытии/закрытии
 	useEffect(() => {
 		if (!isSidebarOpen) return;
 
 		const handleClickOutside = (event: MouseEvent) => {
+			const target = event.target as Node;
+
 			if (
 				sidebarRef.current &&
-				!sidebarRef.current.contains(event.target as Node) &&
-				// Проверяем, что клик не по кнопке стрелки
-				!(event.target as HTMLElement).closest?.('[role="button"]')
+				!sidebarRef.current.contains(target) &&
+				arrowButtonRef.current &&
+				!arrowButtonRef.current.contains(target)
 			) {
-				closeSidebar();
-			}
-		};
-
-		const handleEscape = (event: KeyboardEvent) => {
-			if (event.key === 'Escape') {
-				closeSidebar();
+				setIsSidebarOpen(false);
 			}
 		};
 
 		document.addEventListener('mousedown', handleClickOutside);
-		document.addEventListener('keydown', handleEscape);
-
 		return () => {
 			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [isSidebarOpen]);
+
+	useEffect(() => {
+		if (!isSidebarOpen) return;
+
+		const handleEscape = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') {
+				setIsSidebarOpen(false);
+			}
+		};
+
+		document.addEventListener('keydown', handleEscape);
+		return () => {
 			document.removeEventListener('keydown', handleEscape);
 		};
 	}, [isSidebarOpen]);
 
+	// Переключение сайдбара
 	const toggleSidebar = () => {
 		setIsSidebarOpen(!isSidebarOpen);
-		// При открытии синхронизируем форму с применёнными настройками
-		if (!isSidebarOpen) {
-			setFormSettings(appliedSettings);
-		}
 	};
 
-	const closeSidebar = () => {
-		setIsSidebarOpen(false);
-	};
-
+	// Применение настроек
 	const handleApply = () => {
 		onApply(formSettings);
 		setIsSidebarOpen(false);
 	};
 
-	const handleResetForm = () => {
+	// Сброс настроек
+	const handleReset = () => {
 		setFormSettings(defaultArticleState);
 		onReset();
 		setIsSidebarOpen(false);
 	};
 
+	// Обработчики изменения полей
 	const handleFontFamilyChange = (selected: OptionType) => {
 		setFormSettings({ ...formSettings, fontFamilyOption: selected });
 	};
@@ -117,14 +121,16 @@ export const ArticleParamsForm = ({
 		handleApply();
 	};
 
-	const handleResetFormSubmit = (e: React.FormEvent) => {
+	const handleResetForm = (e: React.FormEvent) => {
 		e.preventDefault();
-		handleResetForm();
+		handleReset();
 	};
 
 	return (
 		<>
-			<ArrowButton isOpen={isSidebarOpen} onClick={toggleSidebar} />
+			<div ref={arrowButtonRef}>
+				<ArrowButton isOpen={isSidebarOpen} onClick={toggleSidebar} />
+			</div>
 
 			<aside
 				ref={sidebarRef}
@@ -134,7 +140,7 @@ export const ArticleParamsForm = ({
 				<form
 					className={styles.form}
 					onSubmit={handleSubmit}
-					onReset={handleResetFormSubmit}>
+					onReset={handleResetForm}>
 					<div className={styles.fields}>
 						<Select
 							title='Шрифт'
