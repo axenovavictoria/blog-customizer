@@ -11,32 +11,15 @@ import {
 import styles from './app.module.scss';
 
 export const App = () => {
-	// Применённые настройки
 	const [appliedSettings, setAppliedSettings] =
 		useState<ArticleStateType>(defaultArticleState);
-	// Настройки в форме
-	const [formSettings, setFormSettings] =
-		useState<ArticleStateType>(defaultArticleState);
-	// Открыт/закрыт сайдбар
-	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-	const handleApply = () => {
-		setAppliedSettings(formSettings);
-		setIsSidebarOpen(false);
+	const handleApply = (newSettings: ArticleStateType) => {
+		setAppliedSettings(newSettings);
 	};
 
 	const handleReset = () => {
-		setFormSettings(defaultArticleState);
 		setAppliedSettings(defaultArticleState);
-	};
-
-	const toggleSidebar = () => {
-		setIsSidebarOpen(!isSidebarOpen);
-	};
-
-	const closeSidebar = () => {
-		setIsSidebarOpen(false);
-		setFormSettings(appliedSettings);
 	};
 
 	return (
@@ -52,13 +35,9 @@ export const App = () => {
 				} as CSSProperties
 			}>
 			<ArticleParamsForm
-				settings={formSettings}
-				onSettingsChange={setFormSettings}
+				appliedSettings={appliedSettings}
 				onApply={handleApply}
 				onReset={handleReset}
-				isSidebarOpen={isSidebarOpen}
-				onToggleSidebar={toggleSidebar}
-				onCloseSidebar={closeSidebar}
 			/>
 			<Article />
 		</main>
